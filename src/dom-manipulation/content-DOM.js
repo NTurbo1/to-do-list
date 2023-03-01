@@ -14,6 +14,8 @@ function loadNewTaskBar() {
     const newTaskBar = document.createElement('div');
     newTaskBar.id = "todays-new-task-bar";
     newTaskBar.classList.add("new-task-bar");
+    newTaskBar.classList.add("todays-new-task-bar-hover");
+    newTaskBar.addEventListener('click', addNewTodaysTaskClicked);
     
     const newTaskHeader = document.createElement("h1");
     newTaskHeader.id = "todays-new-task-header";
@@ -27,4 +29,10 @@ function loadNewTaskBar() {
 
 export {
     loadNewTaskBar
+}
+
+function addNewTodaysTaskClicked() {
+    this.classList.remove("todays-new-task-bar-hover");
+    console.log("clicked!");
+    this.classList.add("todays-new-task-bar-hover");
 }
