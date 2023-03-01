@@ -1,0 +1,30 @@
+:root {
+    --side-bar-icons-color: #818181;
+
+}
+
+#side-bar {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.side-bar-child-div {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.side-bar-icon {
+    height: 25px;
+}
+
+.side-bar-btn {
+    border-style: none;
+    background-color: var(--side-bar-bg-color);
+    color: var(--side-bar-icons-color);
+    font-size: 20px;
+    font-weight: 600;
+}
+
