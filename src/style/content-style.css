@@ -1,0 +1,41 @@
+#content {
+    padding: 30px;
+}
+
+.todays-content {
+    display: flex;
+    flex-direction: column;
+}
+#today-header-div {
+    margin-bottom: 20px;
+    background-color: var(--side-bar-bg-color);
+    box-shadow: 0 2px 2px var(--nav-bar-bg-color);
+    height: 60px;
+    display: flex;
+    align-items: center;
+    padding-left: 20px;
+}
+
+#today-header {
+    color: var(--nav-bar-bg-color);
+    font-size: 40px;
+}
+
+#todays-new-task-bar {
+    height: 40px;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    border-radius: 15px;
+}
+
+#todays-new-task-bar:hover {
+    background-color: var(--side-bar-bg-color);
+    box-shadow: 3px 3px 5px gray;
+}
+
+#todays-new-task-header {
+    color: #818181;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    font-size: 20px;
+}
