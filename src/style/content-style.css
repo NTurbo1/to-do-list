@@ -46,7 +46,7 @@
     font-size: 20px;
 }
 
-#todays-new-task-form-div {
+.new-task-form-div {
     width: 100%;
     height: 100%;
     display: flex;
@@ -54,7 +54,7 @@
     align-items: center;
 }
 
-#todays-new-task-form {
+.new-task-form {
     width: 400px;
     height: 400px;
     display: flex;
@@ -78,7 +78,7 @@
     justify-content: center;
 }
 
-#todays-new-task-btn {
+.new-task-btn {
     width: 300px;
     border-radius: 20px;
 }

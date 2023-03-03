@@ -31,6 +31,7 @@ function loadSideBarContent() {
 
 function loadSideBarChildDiv(sideBar, sideBarChildDivId, sideBarChildDivBtnId, 
                             sideBarChildDivBtnText) {
+
     const sideBarChildDiv = document.createElement('div');
     sideBarChildDiv.id = sideBarChildDivId;
     sideBarChildDiv.classList.add("side-bar-child-div");
@@ -48,6 +49,7 @@ function loadSideBarChildDiv(sideBar, sideBarChildDivId, sideBarChildDivBtnId,
 
         if (sideBarChild === "seven") {
             capitalizedSideBarChild = "Next 7 Days";
+            sideBarChild += "-days";
         }
 
         loadContentHeaderDiv(sideBarChild + "-header-div", sideBarChild + "-header", 

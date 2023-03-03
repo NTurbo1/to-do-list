@@ -13,9 +13,10 @@ function loadNewTaskBar(newTaskBarId, newTaskHeaderId) {
 
     newTaskBar.addEventListener('click', newTaskBarClicked);
 
-    if (contentDiv.classList.contains("todays-content")) {
-        newTaskBar.addEventListener('click', loadTodaysNewTaskForm);
-    }
+    let newTaskFormDivId = returnAppropriateNewTaskFormDivIdAccordingTo(contentDiv.classList);
+    newTaskBar.addEventListener('click', e => {
+        loadNewTaskFormDiv(newTaskFormDivId);
+    });
     
     const newTaskHeader = document.createElement("h1");
     newTaskHeader.id = newTaskHeaderId;
@@ -49,31 +50,43 @@ function newTaskBarClicked() {
     this.classList.add("new-task-bar-hover");
 }
 
-function loadTodaysNewTaskForm() {
-    const todaysContentDiv = document.querySelector(".todays-content");
-    const todaysNewTaskBar = document.querySelector("#todays-new-task-bar");
+function loadNewTaskFormDiv(newTaskFormDivId) {
 
-    todaysContentDiv.removeChild(todaysNewTaskBar);
+    const contentDiv = removeAllChildrenOfContentDivExceptContentHeaderDiv();
 
-    const todaysTasksDiv = document.querySelector("#todays-tasks-div");
+    const newTaskFormDiv = document.createElement('div');
+    newTaskFormDiv.classList.add("new-task-form-div");
+    newTaskFormDiv.id = newTaskFormDivId;
 
-    if(todaysTasksDiv !== null) {
-        todaysContentDiv.removeChild(todaysTasksDiv);
-    }
+    const newTaskFormId = newTaskFormDivId.split("-").slice(0, -1).join("-");
+    const newTaskForm = createNewTaskForm(newTaskFormId);
 
-    const todaysNewTaskFormDiv = document.createElement('div');
-    todaysNewTaskFormDiv.id = "todays-new-task-form-div";
+    newTaskFormDiv.appendChild(newTaskForm);
 
-    const todaysNewTaskForm = createTodaysNewTaskForm();
-
-    todaysNewTaskFormDiv.appendChild(todaysNewTaskForm);
-
-    todaysContentDiv.appendChild(todaysNewTaskFormDiv);
+    contentDiv.appendChild(newTaskFormDiv);
 }
 
-function createTodaysNewTaskForm() {
-    const todaysNewTaskForm = document.createElement('form');
-    todaysNewTaskForm.id = "todays-new-task-form";
+function removeAllChildrenOfContentDivExceptContentHeaderDiv() { // Returns a contentDiv with
+                                                                 // '.content-header-div' as
+                                                                 // the only child.
+    const contentDiv = document.querySelector("#content");
+    const newTaskBar = document.querySelector(".new-task-bar");
+
+    contentDiv.removeChild(newTaskBar);
+
+    const tasksDiv = document.querySelector(".tasks-div");
+
+    if(tasksDiv !== null) {
+        contentDiv.removeChild(tasksDiv);
+    }
+
+    return contentDiv;
+}
+
+function createNewTaskForm(newTaskFormId) {
+    const newTaskForm = document.createElement('form');
+    newTaskForm.id = newTaskFormId;
+    newTaskForm.classList.add("new-task-form");
 
     const titleDiv = createNewTaskInputDiv("title-div", "title-label", 
                                       "Title", "title-input", "text", true);
@@ -93,12 +106,21 @@ function createTodaysNewTaskForm() {
 
     const projectSelectDiv = createProjectSelectDiv();
 
-    const newTaskBtnDiv = createNewTaskBtnDiv();
+    const newTaskBtnDiv = createNewTaskBtnDiv("todays-new-task-btn-div", 
+                                                "todays-new-task-btn");
 
-    todaysNewTaskForm.append(titleDiv, descriptionDiv, highPriorityDiv, mediumPriorityDiv,
-                            lowPriorityDiv, projectSelectDiv, newTaskBtnDiv);
+    let dueDateDiv = createNewTaskInputDiv("dueDate-div", "dueDate-label", "Due Date", 
+                                            "dueDate-input", "date", false);
 
-    return todaysNewTaskForm;
+    if (newTaskFormId.split("-")[0] === "todays") {
+        let dueDateInput = dueDateDiv.children[1];
+        dueDateInput.disabled = true;
+    } 
+
+    newTaskForm.append(titleDiv, descriptionDiv, dueDateDiv, highPriorityDiv, 
+                        mediumPriorityDiv, lowPriorityDiv, projectSelectDiv, newTaskBtnDiv);
+    
+    return newTaskForm;
     
 }
 
@@ -139,6 +161,11 @@ function createNewTaskInputDiv(inputDivClass, labelClass, labelText, inputClass,
         input.classList.add("priority-input");
     }
 
+    if (inputType === "date") {
+        let today = toYyyyMmDdFormat(new Date());
+        input.value = today;
+    }
+
     div.append(label, input);
 
     return div;
@@ -166,14 +193,14 @@ function createProjectSelectDiv() {
     return projectSelectDiv;
 }
 
-function createNewTaskBtnDiv() {
+function createNewTaskBtnDiv(newTaskBtnDivId, newTaskBtnId) {
 
     const newTaskBtnDiv = document.createElement('div');
-    newTaskBtnDiv.id = "todays-new-task-btn-div";
+    newTaskBtnDiv.id = newTaskBtnDivId;
     newTaskBtnDiv.classList.add("new-task-btn-div");
 
     const newTaskBtn = document.createElement("button");
-    newTaskBtn.id = "todays-new-task-btn";
+    newTaskBtn.id = newTaskBtnId;
     newTaskBtn.classList.add("new-task-btn");
     newTaskBtn.textContent = "Add";
     newTaskBtn.type = "submit";
@@ -182,3 +209,34 @@ function createNewTaskBtnDiv() {
 
     return newTaskBtnDiv;
 }
+
+function returnAppropriateNewTaskFormDivIdAccordingTo(contentDivClassList) {
+    if (contentDivClassList.contains("todays-content")) {
+        return "todays-new-task-form-div";
+    } else if (contentDivClassList.contains("inbox-content")) {
+        return "inbox-new-task-form-div";
+    } else if (contentDivClassList.contains("seven-days-content")) {
+        return "seven-days-new-task-form-div";
+    } else if (contentDivClassList.contains("upcoming-content")) {
+        return "upcoming-new-task-form-div";
+    } else {
+        return "projects-new-task-form-div";
+    }
+}
+
+function toYyyyMmDdFormat(date) {
+    let yyyy = date.getFullYear();
+    let mm = date.getMonth() + 1;
+    let dd = date.getDate();
+    
+    if (dd < 10) {
+        dd = "0" + dd;
+    }
+
+    if (mm < 10) {
+        mm = "0" + mm; 
+    }
+
+    return yyyy + "-" + mm + "-" + dd;
+}
+
