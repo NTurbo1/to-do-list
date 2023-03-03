@@ -1,9 +1,12 @@
-function toDoTask(title, description, dueDate, priority) {
+let allTasks = [];
+
+function createNewtoDoTask(title, description, dueDate, priority, project) {
 
     return {
         title,
         description,
         dueDate,
-        priority
+        priority,
+        project
     };
 }
