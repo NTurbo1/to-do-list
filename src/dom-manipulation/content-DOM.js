@@ -1,6 +1,11 @@
+import {allTasks, createNewtoDoTask, removeTaskWithTitle, returnToDoTasksDueOn, 
+        returnToDoTasksDueNotOn, returnToDoTasksDueBetween, returnToDoTasksWithoutDueDates
+    } from '../app-logic/to-do-task';
+import addDays from 'date-fns/addDays';
+
 export {
-    loadNewTaskBar,
-    loadContentHeaderDiv
+    loadNewTaskBar, loadContentHeaderDiv, loadTodaysToDoTasks, loadAllToDoTasks,
+    loadUpcomingToDoTasks, loadNextSevenDaysToDoTasks, loadInboxToDoTasks
 }
 
 function loadNewTaskBar(newTaskBarId, newTaskHeaderId) {
@@ -15,6 +20,7 @@ function loadNewTaskBar(newTaskBarId, newTaskHeaderId) {
 
     let newTaskFormDivId = returnAppropriateNewTaskFormDivIdAccordingTo(contentDiv.classList);
     newTaskBar.addEventListener('click', e => {
+        disableAllSideBarBtns();
         loadNewTaskFormDiv(newTaskFormDivId);
     });
     
@@ -74,10 +80,10 @@ function removeAllChildrenOfContentDivExceptContentHeaderDiv() { // Returns a co
 
     contentDiv.removeChild(newTaskBar);
 
-    const tasksDiv = document.querySelector(".tasks-div");
+    const toDoTasksDiv = document.querySelector(".to-do-tasks-div");
 
-    if(tasksDiv !== null) {
-        contentDiv.removeChild(tasksDiv);
+    if(toDoTasksDiv !== null) {
+        contentDiv.removeChild(toDoTasksDiv);
     }
 
     return contentDiv;
@@ -106,8 +112,11 @@ function createNewTaskForm(newTaskFormId) {
 
     const projectSelectDiv = createProjectSelectDiv();
 
-    const newTaskBtnDiv = createNewTaskBtnDiv("todays-new-task-btn-div", 
-                                                "todays-new-task-btn");
+    const newTaskFormBtnsDiv = document.createElement('div');
+    newTaskFormBtnsDiv.classList.add("new-task-form-btns-div");
+    const newTaskBtnDiv = createNewTaskBtnDiv();
+    const newTaskFormDivCloseBtnDiv = createNewTaskFormDivCloseBtnDiv();
+    newTaskFormBtnsDiv.append(newTaskBtnDiv, newTaskFormDivCloseBtnDiv);
 
     let dueDateDiv = createNewTaskInputDiv("dueDate-div", "dueDate-label", "Due Date", 
                                             "dueDate-input", "date", false);
@@ -118,7 +127,8 @@ function createNewTaskForm(newTaskFormId) {
     } 
 
     newTaskForm.append(titleDiv, descriptionDiv, dueDateDiv, highPriorityDiv, 
-                        mediumPriorityDiv, lowPriorityDiv, projectSelectDiv, newTaskBtnDiv);
+                        mediumPriorityDiv, lowPriorityDiv, projectSelectDiv, 
+                        newTaskFormBtnsDiv);
     
     return newTaskForm;
     
@@ -187,27 +197,205 @@ function createProjectSelectDiv() {
     projectOption2.textContent = "Project 2";
     projectOption2.value = "Project 2";
 
-    projectSelect.append(projectOption1, projectOption2);
+    //No project option
+    const noProjectOption =  document.createElement("option");
+    noProjectOption.textContent = "No Project";
+    noProjectOption.value = "";
+
+    projectSelect.append(projectOption1, projectOption2, noProjectOption);
     projectSelectDiv.appendChild(projectSelect);
 
     return projectSelectDiv;
 }
 
-function createNewTaskBtnDiv(newTaskBtnDivId, newTaskBtnId) {
+function createNewTaskBtnDiv() {
 
     const newTaskBtnDiv = document.createElement('div');
-    newTaskBtnDiv.id = newTaskBtnDivId;
     newTaskBtnDiv.classList.add("new-task-btn-div");
 
     const newTaskBtn = document.createElement("button");
-    newTaskBtn.id = newTaskBtnId;
     newTaskBtn.classList.add("new-task-btn");
     newTaskBtn.textContent = "Add";
     newTaskBtn.type = "submit";
 
+    newTaskBtn.addEventListener('click', e => {
+        e.preventDefault();
+        
+        const titleInputValue = document.querySelector(".title-input").value;
+        const descriptionInputValue = document.querySelector(".description-input").value;
+        const dueDateInputValue = document.querySelector(".dueDate-input").value;
+
+        let priorityInputValue = "";
+        for (let radioInput of document.getElementsByName("priority")) {
+            if (radioInput.checked) {
+                priorityInputValue = radioInput.value;
+                break;
+            }
+        }
+
+        const projectInputValue = document.querySelector(".project-select").value;
+
+        let newToDoTask = createNewtoDoTask(titleInputValue, descriptionInputValue, 
+                                            dueDateInputValue, priorityInputValue,
+                                            projectInputValue);
+
+        allTasks.push(newToDoTask);
+
+        reloadInsideContentDivAfterNewTaskForm();
+
+        enableAllSideBarBtnsExceptTheOneThatLoadsCurrentContentDivContent();
+    });
+
     newTaskBtnDiv.appendChild(newTaskBtn);
 
     return newTaskBtnDiv;
+}
+
+function createNewTaskFormDivCloseBtnDiv() {
+    const newTaskFormCloseBtnDiv = document.createElement('div');
+    newTaskFormCloseBtnDiv.classList.add("new-task-form-close-btn-div");
+
+    const newTaskFormCloseBtn = document.createElement("button");
+    newTaskFormCloseBtn.classList.add("new-task-form-close-btn");
+    newTaskFormCloseBtn.textContent = "Close";
+
+    newTaskFormCloseBtn.addEventListener('click', e => {
+        reloadInsideContentDivAfterNewTaskForm();
+        enableAllSideBarBtnsExceptTheOneThatLoadsCurrentContentDivContent();
+    });
+
+    newTaskFormCloseBtnDiv.appendChild(newTaskFormCloseBtn);
+
+    return newTaskFormCloseBtnDiv;
+}
+
+function reloadInsideContentDivAfterNewTaskForm() {
+    const contentDiv = document.getElementById("content");
+    const formDiv = document.querySelector(".new-task-form-div");
+    contentDiv.removeChild(formDiv);
+
+    if (contentDiv.classList.contains("todays-content")) {
+        loadTodaysToDoTasks();
+        loadNewTaskBar("todays-new-task-bar", "todays-new-task-header");
+    } else if (contentDiv.classList.contains("inbox-content")) {
+        loadInboxToDoTasks();
+        loadNewTaskBar("inbox-new-task-bar", "inbox-new-task-header");
+    } else if (contentDiv.classList.contains("upcoming-content")) {
+        loadUpcomingToDoTasks();
+        loadNewTaskBar("upcoming-new-task-bar", "upcoming-new-task-header");
+    } else if (contentDiv.classList.contains("seven-days-content")) {
+        loadNextSevenDaysToDoTasks();
+        loadNewTaskBar("seven-days-new-task-bar", "seven-days-new-task-header");
+        } //else if (contentDiv.classList.contains("projects-content")) {
+    //     //function to load projects
+    //     loadNewTaskBar("projects-new-task-bar", "projects-new-task-header");
+    // }
+}
+
+function enableAllSideBarBtnsExceptTheOneThatLoadsCurrentContentDivContent() {
+    const sideBarBtns = document.querySelectorAll(".side-bar-btn");
+    let identifier = document.getElementById("content").classList[0].split("-")[0];
+
+    if (identifier === "todays") {
+        identifier = "todays"; 
+    } else if (identifier === "seven") {
+        identifier = "seven-days";
+    }
+
+    identifier += "-btn";
+
+    // enables all the side bar btns except the one that loads the current "contentDiv's" 
+    // content when is clicked.  
+    sideBarBtns.forEach(sideBarBtn => {   
+        if (sideBarBtn.id !== identifier) {
+            sideBarBtn.disabled = false;
+        }
+    });
+}
+
+function disableAllSideBarBtns() {
+    const sideBarBtns = document.querySelectorAll(".side-bar-btn");
+    sideBarBtns.forEach(sideBarBtn => { // disables all the side bar btns.
+        sideBarBtn.disabled = true;
+    });
+}
+
+function loadTodaysToDoTasks() {
+    let todaysToDoTasks = returnToDoTasksDueOn(toYyyyMmDdFormat(new Date()));
+    if (todaysToDoTasks.length > 0) {
+        loadToDoTasksIn(todaysToDoTasks);
+    }
+}
+
+function loadAllToDoTasks() {
+    if (allTasks.length > 0) {
+        loadToDoTasksIn(allTasks);
+    }
+}
+
+function loadUpcomingToDoTasks() {
+    let upcomingToDoTasks = returnToDoTasksDueNotOn(toYyyyMmDdFormat(new Date()));
+    if (upcomingToDoTasks.length > 0) {
+        loadToDoTasksIn(upcomingToDoTasks);
+    }
+}
+
+function loadNextSevenDaysToDoTasks() {
+    let today = new Date();
+    let afterSevenDays = addDays(today, 7);
+    console.log("after7Days: " + afterSevenDays);
+    let toDoTasksForNextSevenDays = returnToDoTasksDueBetween(toYyyyMmDdFormat(today), 
+                                                            toYyyyMmDdFormat(afterSevenDays));
+    console.log(toDoTasksForNextSevenDays);
+    loadToDoTasksIn(toDoTasksForNextSevenDays);
+}
+
+function loadInboxToDoTasks() {
+    let toDoTasksWithoutDueDates = returnToDoTasksWithoutDueDates();
+    if (toDoTasksWithoutDueDates.length > 0) {
+        loadToDoTasksIn(toDoTasksWithoutDueDates);
+    }
+}
+
+function loadToDoTasksIn(toDoTasksList) {
+
+    const contentDiv = document.getElementById("content");
+    const newTaskBar = document.querySelector(".new-task-bar");
+    let toDoTasksDiv = document.createElement('div');
+    toDoTasksDiv.classList.add("to-do-tasks-div");
+    contentDiv.insertBefore(toDoTasksDiv, newTaskBar);
+
+    toDoTasksList.forEach( toDoTask => {
+        const toDoTaskDiv = document.createElement('div');
+        toDoTaskDiv.classList.add("to-do-task-div");
+
+        let toDoTaskLabel = document.createElement("label");
+        toDoTaskLabel.classList.add("to-do-task-label");
+        toDoTaskLabel.textContent = toDoTask.title;
+
+        const toDoTaskInput = document.createElement('input');
+        toDoTaskInput.type = "checkbox";
+        toDoTaskInput.id = toDoTask.title.split(" ").join("-");
+
+        toDoTaskLabel.htmlFor = toDoTaskInput.id; //Sets the label's 'for' to the input's id
+
+        toDoTaskInput.addEventListener('change', e => {
+            const taskInput = e.target;
+            const taskDiv = taskInput.parentElement; 
+
+            if (taskInput.checked) {
+                let toDoTasksDiv = document.querySelector(".to-do-tasks-div");
+                toDoTasksDiv.removeChild(taskDiv);
+                
+                removeTaskWithTitle(taskDiv.lastChild.textContent);
+            }
+        });
+
+        toDoTaskDiv.appendChild(toDoTaskInput);
+        toDoTaskDiv.appendChild(toDoTaskLabel);
+
+        toDoTasksDiv.appendChild(toDoTaskDiv);
+    });
 }
 
 function returnAppropriateNewTaskFormDivIdAccordingTo(contentDivClassList) {

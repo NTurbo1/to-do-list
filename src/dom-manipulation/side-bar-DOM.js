@@ -1,4 +1,6 @@
-import { loadNewTaskBar, loadContentHeaderDiv } from './content-DOM';
+import { loadNewTaskBar, loadContentHeaderDiv, loadTodaysToDoTasks, loadAllToDoTasks,
+        loadUpcomingToDoTasks, loadNextSevenDaysToDoTasks, loadInboxToDoTasks
+     } from './content-DOM';
 
 import inboxIconSrc from '../icons/inbox-icon.png';
 import todayIconSrc from '../icons/today-icon.png';
@@ -42,10 +44,14 @@ function loadSideBarChildDiv(sideBar, sideBarChildDivId, sideBarChildDivBtnId,
     sideBarChildDivBtn.textContent = sideBarChildDivBtnText;
     sideBarChildDivBtn.addEventListener('click', e => {
 
-        let sideBarChild = e.target.id.split("-")[0];
+        let prevContentDivClass = document.getElementById("content").classList[0];
+
+        let clickedSideBarChildDivBtn = e.target;
+        let sideBarChild = clickedSideBarChildDivBtn.id.split("-")[0];
         const contentDiv = emptyContentDiv();
 
-        let capitalizedSideBarChild = sideBarChild.slice(0, 1).toUpperCase() + sideBarChild.slice(1);
+        let capitalizedSideBarChild = sideBarChild.slice(0, 1).toUpperCase() + 
+                                    sideBarChild.slice(1);
 
         if (sideBarChild === "seven") {
             capitalizedSideBarChild = "Next 7 Days";
@@ -63,7 +69,35 @@ function loadSideBarChildDiv(sideBar, sideBarChildDivId, sideBarChildDivBtnId,
 
         //loadNewTaskBar() should be called after adding a class to contentDiv
         loadNewTaskBar(sideBarChild + "-new-task-bar", sideBarChild + "-new-task-header");
+
+        if (sideBarChild === "todays") {
+            loadTodaysToDoTasks();
+        } else if (sideBarChild === "inbox") {
+            loadInboxToDoTasks();
+        } else if (sideBarChild === "upcoming") {
+            loadUpcomingToDoTasks();
+        } else if (sideBarChild === "seven-days") {
+            loadNextSevenDaysToDoTasks();
+        }
+
+        //Disables the button after being clicked.
+        clickedSideBarChildDivBtn.disabled = true;
+        let identifier = prevContentDivClass.split("-")[0];
+
+        //Enables the other button that had been previously disabled.
+        if (identifier === "todays") {
+            document.getElementById("today-btn").disabled = false;
+        } else if (identifier === "seven") {
+            document.getElementById("seven-days-btn").disabled = false;
+        } else {
+            document.getElementById(identifier + "-btn").disabled = false;
+        }
+        
     });         
+
+    if (sideBarChildDivBtnId === "today-btn") {
+        sideBarChildDivBtn.disabled = true;
+    }
 
     const sideBarChildIcon = new Image();
     let sideBarChild = sideBarChildDivId.split("-")[0];
@@ -97,9 +131,14 @@ function emptyContentDiv() { //Returns an emptied contentDiv
 
     const currentContentHeaderDiv = document.querySelector(".content-header-div");
     const currentNewTaskBar = document.querySelector(".new-task-bar");
+    const currentToDoTasksDiv = document.querySelector(".to-do-tasks-div");
 
     contentDiv.removeChild(currentContentHeaderDiv);
     contentDiv.removeChild(currentNewTaskBar);
+
+    if (currentToDoTasksDiv !== null) {
+        contentDiv.removeChild(currentToDoTasksDiv);
+    }
 
     return contentDiv;
 }
