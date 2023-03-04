@@ -344,8 +344,7 @@ function loadNextSevenDaysToDoTasks() {
     let today = new Date();
     let afterSevenDays = addDays(today, 7);
     console.log("after7Days: " + afterSevenDays);
-    let toDoTasksForNextSevenDays = returnToDoTasksDueBetween(toYyyyMmDdFormat(today), 
-                                                            toYyyyMmDdFormat(afterSevenDays));
+    let toDoTasksForNextSevenDays = returnToDoTasksDueBetween(today, afterSevenDays);
     console.log(toDoTasksForNextSevenDays);
     loadToDoTasksIn(toDoTasksForNextSevenDays);
 }

@@ -1,3 +1,5 @@
+import compareAsc from 'date-fns/compareAsc';
+
 export {
     allTasks,
     createNewtoDoTask,
@@ -41,42 +43,16 @@ function returnToDoTasksDueNotOn(date) {
 }
 
 function returnToDoTasksDueBetween(startDate, endDate) {
-    return allTasks.filter(task => (compareDates(task.dueDate, startDate) === 1 && 
-                                    compareDates(task.dueDate, endDate) === -1) ||
-                                    (compareDates(task.dueDate, startDate) === 0 ||
-                                    compareDates(task.dueDate, startDate) === 0));
+    return allTasks.filter(task => {
+        let dueDate = new Date(task.dueDate);
+
+        return (compareAsc(dueDate, startDate) === 1 && 
+                compareAsc(dueDate, endDate) === -1) ||
+               (compareAsc(dueDate, startDate) === 0 ||
+                compareAsc(dueDate, startDate) === 0);
+    });
 }
 
 function returnToDoTasksWithoutDueDates() {
     return allTasks.filter(task => task.dueDate === "");
-}
-
-function compareDates(date1, date2) { // If date1 > date2 => 1
-                                      // If date1 < date2 => -1
-                                      // If date1 == date2 => 0 
-    let a1 = date1.split("-");
-    let a2 = date2.split("-");
-    let year1 = date1[0]; let year2 = date2[0];
-    let month1 = date1[1]; let month2 = date2[1];
-    let day1 = date1[2]; let day2 = date2[2];
-
-    if (year1 > year2) {
-        return 1;
-    } else if (year1 < year2) {
-        return -1;
-    } else {
-        if (month1 > month2) {
-            return 1;
-        } else if (month1 < month2) {
-            return -1;
-        } else {
-            if (day1 > day2) {
-                return 1;
-            } else if (day1 < day2) {
-                return -1;
-            } else {
-                return 0;
-            }
-        }       
-    }
 }
